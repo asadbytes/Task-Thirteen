@@ -12,16 +12,11 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
 class SimpleSamples : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        enableEdgeToEdge()
 
         val gridLayout = GridLayout(this).apply {
             rowCount = 3

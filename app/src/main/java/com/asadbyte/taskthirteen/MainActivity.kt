@@ -19,5 +19,10 @@ class MainActivity : AppCompatActivity() {
         binding.btnSimpleSamples.setOnClickListener {
             startActivity(Intent(this, SimpleSamples::class.java))
         }
+
+        binding.btnCustomShapes.text = "Custom Shapes"
+        binding.btnCustomShapes.setOnClickListener {
+            startActivity(Intent(this, CustomShapes::class.java))
+        }
     }
 }

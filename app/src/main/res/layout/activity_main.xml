@@ -14,7 +14,7 @@
         android:text="Show Shapes UI" />
 
     <Button
-        android:id="@+id/btn_upcoming1"
+        android:id="@+id/btn_custom_shapes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Upcoming UI 1"
