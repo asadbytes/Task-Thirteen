@@ -13,6 +13,9 @@
         android:theme="@style/Theme.TaskThirteen"
         tools:targetApi="31">
         <activity
+            android:name=".TransformationsActivity"
+            android:exported="false" />
+        <activity
             android:name=".StylingAndEffects"
             android:exported="false" />
         <activity

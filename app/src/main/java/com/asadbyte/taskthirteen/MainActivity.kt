@@ -24,5 +24,15 @@ class MainActivity : AppCompatActivity() {
         binding.btnCustomShapes.setOnClickListener {
             startActivity(Intent(this, CustomShapes::class.java))
         }
+
+        binding.btnStylingEffects.text = "Styling & Effects"
+        binding.btnStylingEffects.setOnClickListener {
+            startActivity(Intent(this, StylingAndEffects::class.java))
+        }
+
+        binding.btnAnimations.text = "Animations"
+        binding.btnAnimations.setOnClickListener {
+            startActivity(Intent(this, TransformationsActivity::class.java))
+        }
     }
 }

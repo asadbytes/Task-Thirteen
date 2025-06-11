@@ -17,14 +17,60 @@ import android.graphics.RadialGradient
 import android.graphics.Shader
 import android.graphics.SweepGradient
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class StylingAndEffects : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val scrollView = ScrollView(this)
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16, 16, 16, 16)
+        }
+
+        val viewItems = listOf(
+            "Fill / Stroke / Fill_And_Stroke" to FillStrokeView(this),
+            "Stroke Width & Cap" to StrokeWidthView(this),
+            "Dashed Path Effect" to DashPathEffectView(this),
+            "Linear Gradient" to LinearGradientView(this),
+            "Radial Gradient" to RadialGradientView(this),
+            "Sweep Gradient" to SweepGradientView(this),
+            "Shadow Layer" to ShadowView(this),
+            "Color Filter (Invert Red)" to FilterColorsView(this),
+            "PorterDuff Blending (Multiply)" to PorterBluffBlendingView(this)
+        )
+
+        viewItems.forEach { (label, view) ->
+            val wrapper = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(8, 8, 8, 24)
+
+                val textView = TextView(this@StylingAndEffects).apply {
+                    text = label
+                    setTextColor(Color.BLACK)
+                    gravity = Gravity.CENTER
+                    textSize = 16f
+                }
+
+                view.layoutParams = LinearLayout.LayoutParams(800, 800)
+                addView(textView)
+                addView(view)
+            }
+            container.addView(wrapper)
+        }
+
+        scrollView.addView(container)
+        setContentView(scrollView)
     }
 }
+
 
 class FillStrokeView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
