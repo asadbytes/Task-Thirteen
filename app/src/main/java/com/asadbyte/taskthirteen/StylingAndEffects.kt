@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
+import android.graphics.ComposeShader
 import android.graphics.DashPathEffect
 import android.graphics.LinearGradient
 import android.graphics.Paint
@@ -43,7 +44,9 @@ class StylingAndEffects : AppCompatActivity() {
             "Sweep Gradient" to SweepGradientView(this),
             "Shadow Layer" to ShadowView(this),
             "Color Filter (Invert Red)" to FilterColorsView(this),
-            "PorterDuff Blending (Multiply)" to PorterBluffBlendingView(this)
+            "PorterDuff Blending (Multiply)" to PorterBluffBlendingView(this),
+            "PorterDuff Modes" to ExtraPorterDuffModesView(this),
+            "Compose Shader" to ComposeShaderView(this)
         )
 
         viewItems.forEach { (label, view) ->
@@ -249,5 +252,61 @@ class PorterBluffBlendingView(context: Context) : View(context) {
         canvas.drawBitmap(src, 100f, 100f, paint)
         paint.xfermode = null
     }
+}
 
+class ExtraPorterDuffModesView(context: Context) : View(context) {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    @SuppressLint("DrawAllocation")
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        val dstBitmap = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
+        val srcBitmap = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
+
+        val canvasDst = Canvas(dstBitmap)
+        val canvasSrc = Canvas(srcBitmap)
+
+        // DST: Yellow square
+        canvasDst.drawRect(0f, 0f, 400f, 400f, Paint().apply { color = Color.YELLOW })
+
+        // SRC: Blue circle
+        canvasSrc.drawCircle(200f, 200f, 200f, Paint().apply { color = Color.BLUE })
+
+        // First draw the destination
+        canvas.drawBitmap(dstBitmap, 100f, 100f, null)
+
+        // Apply SRC_IN mode
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(srcBitmap, 100f, 100f, paint)
+
+        // Reset for next operation
+        paint.xfermode = null
+
+        // other modes: SRC_OVER, DST_OUT, SRC_OUT, DST_IN etc.
+    }
+}
+
+class ComposeShaderView(context: Context) : View(context) {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    @SuppressLint("DrawAllocation")
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        val linearGradient = LinearGradient(
+            0f, 0f, width.toFloat(), 0f,
+            Color.RED, Color.BLUE, Shader.TileMode.CLAMP
+        )
+
+        val radialGradient = RadialGradient(
+            width / 2f, height / 2f, width / 2f,
+            Color.YELLOW, Color.GREEN, Shader.TileMode.CLAMP
+        )
+
+        val composedShader = ComposeShader(linearGradient, radialGradient, PorterDuff.Mode.SRC_OVER)
+        paint.shader = composedShader
+
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+    }
 }
