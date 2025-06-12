@@ -77,7 +77,7 @@ class StylingAndEffects : AppCompatActivity() {
 
 class FillStrokeView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-
+    private val path = Path()
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -93,11 +93,50 @@ class FillStrokeView(context: Context) : View(context) {
         canvas.drawCircle(500f, 200f, 100f, paint)
 
         // FILL_AND_STROKE
-        paint.style = Paint.Style.FILL_AND_STROKE
-        paint.color = Color.GREEN
-        paint.strokeWidth = 5f
+//        drawShapeWithFillAndStroke(
+//            drawShape = { paint -> canvas.drawCircle(800f, 200f, 100f, paint) },
+//            fillColor = Color.YELLOW,
+//            strokeColor = Color.GREEN,
+//            strokeWidth = 10f
+//        )
+
+        // Filled circle
+        paint.style = Paint.Style.FILL
+        paint.color = Color.YELLOW
         canvas.drawCircle(800f, 200f, 100f, paint)
+
+        // Dashed stroke
+        paint.style = Paint.Style.STROKE
+        paint.color = Color.BLUE
+        paint.strokeWidth = 10f
+        paint.pathEffect = DashPathEffect(floatArrayOf(20f, 10f), 0f)
+
+        path.reset()
+        path.addCircle(800f, 200f, 100f, Path.Direction.CW)
+        canvas.drawPath(path, paint)
+
     }
+
+    fun drawShapeWithFillAndStroke(
+        drawShape: (Paint) -> Unit,
+        fillColor: Int,
+        strokeColor: Int,
+        strokeWidth: Float
+    ) {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+        // Draw Fill
+        paint.style = Paint.Style.FILL
+        paint.color = fillColor
+        drawShape(paint)
+
+        // Draw Stroke
+        paint.style = Paint.Style.STROKE
+        paint.color = strokeColor
+        paint.strokeWidth = strokeWidth
+        drawShape(paint)
+    }
+
 
 }
 
@@ -174,7 +213,6 @@ class RadialGradientView(context: Context) : View(context) {
 
 class SweepGradientView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val path = Path()
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
@@ -182,7 +220,16 @@ class SweepGradientView(context: Context) : View(context) {
 
         paint.shader = SweepGradient(
             400f, 400f,
-            Color.GREEN, Color.BLUE
+            intArrayOf(
+                Color.GREEN,  // 0°
+                Color.BLUE,   // 90°
+                Color.GREEN,  // 180°
+                Color.BLUE,   // 270°
+                Color.GREEN   // 360° (to match start and close loop)
+            ),
+            floatArrayOf(
+                0.0f, 0.25f, 0.5f, 0.75f, 1.0f
+            )
         )
         canvas.drawCircle(400f, 400f, 300f, paint)
     }
@@ -198,7 +245,7 @@ class ShadowView(context: Context) : View(context) {
         setLayerType(LAYER_TYPE_SOFTWARE, null)  // Needed for shadows
 
         paint.color = Color.RED
-        paint.setShadowLayer(20f, 10f, 10f, Color.GRAY)
+        paint.setShadowLayer(20f, 30f, 30f, Color.GRAY)
 
         canvas.drawCircle(400f, 400f, 200f, paint)
     }
@@ -234,25 +281,28 @@ class PorterBluffBlendingView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val dst = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
-        val src = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
+        // Step 1: Create a new temporary bitmap with the same size
+        val resultBitmap = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
+        val resultCanvas = Canvas(resultBitmap)
 
-        val cDst = Canvas(dst)
-        val cSrc = Canvas(src)
-
+        // Step 2: Create destination (red rectangle) and source (blue circle)
         val redPaint = Paint().apply { color = Color.RED }
         val bluePaint = Paint().apply { color = Color.BLUE }
+        //paint.color = Color.BLUE
 
-        cDst.drawRect(0f, 0f, 400f, 400f, redPaint)
-        cSrc.drawCircle(200f, 200f, 200f, bluePaint)
+        // Draw red rectangle onto result canvas
+        resultCanvas.drawRect(0f, 0f, 400f, 400f, redPaint)
 
-        canvas.drawBitmap(dst, 100f, 100f, null)
-
-        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.MULTIPLY)
-        canvas.drawBitmap(src, 100f, 100f, paint)
+        // Set blending mode to MULTIPLY for the blue circle
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.ADD)
+        resultCanvas.drawCircle(200f, 200f, 200f, bluePaint)
         paint.xfermode = null
+
+        // Step 3: Draw the final blended result to screen
+        canvas.drawBitmap(resultBitmap, 100f, 100f, null)
     }
 }
+
 
 class ExtraPorterDuffModesView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -261,31 +311,27 @@ class ExtraPorterDuffModesView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val dstBitmap = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
-        val srcBitmap = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
+        // Step 1: Create a bitmap for the final composition
+        val composedBitmap = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
+        val composedCanvas = Canvas(composedBitmap)
 
-        val canvasDst = Canvas(dstBitmap)
-        val canvasSrc = Canvas(srcBitmap)
+        // Step 2: Create DST (Yellow Square) and SRC (Blue Circle)
+        val dstPaint = Paint().apply { color = Color.YELLOW }
+        val srcPaint = Paint().apply { color = Color.BLUE }
 
-        // DST: Yellow square
-        canvasDst.drawRect(0f, 0f, 400f, 400f, Paint().apply { color = Color.YELLOW })
+        // Step 3: Draw destination (yellow rectangle)
+        composedCanvas.drawRect(0f, 0f, 400f, 400f, dstPaint)
 
-        // SRC: Blue circle
-        canvasSrc.drawCircle(200f, 200f, 200f, Paint().apply { color = Color.BLUE })
-
-        // First draw the destination
-        canvas.drawBitmap(dstBitmap, 100f, 100f, null)
-
-        // Apply SRC_IN mode
+        // Step 4: Set Xfermode and draw source (blue circle) using SRC_IN
         paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-        canvas.drawBitmap(srcBitmap, 100f, 100f, paint)
-
-        // Reset for next operation
+        composedCanvas.drawCircle(200f, 200f, 200f, srcPaint)
         paint.xfermode = null
 
-        // other modes: SRC_OVER, DST_OUT, SRC_OUT, DST_IN etc.
+        // Step 5: Draw final composed bitmap on main screen canvas
+        canvas.drawBitmap(composedBitmap, 100f, 100f, null)
     }
 }
+
 
 class ComposeShaderView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
